@@ -4,6 +4,8 @@ MODULE parameters
 
     integer, parameter :: n1=512, n2=512, n3=512
     integer, parameter :: npe=128
+!    integer, parameter :: n1=256, n2=256, n3=256
+!    integer, parameter :: npe=64
 !    integer, parameter :: n1=64, n2=64, n3=64
 !    integer, parameter :: npe=8
 
@@ -145,7 +147,7 @@ MODULE parameters
     double precision, parameter :: H_scale=20000./L3                 !Actual H in m ( z_real = H z' where z' in [0:L3]  is the nondim z.)
     double precision, parameter :: cor=0.0001!0.00000000001!0.0005 !0.0001                           !Actual f = 0.0001 s^-1 (real value of planet Earth)
     double precision, parameter :: L_scale=5.*(0.5*(sqrt(N_2_trop)+sqrt(N_2_stra))*H_scale/cor)  !200*H_scale                 !Actual L in m ( x_real = L x' where x' in [0:2pi] is the nondim x.)
-    double precision, parameter :: U_scale=20.                        !Actual U in m/s (u_real = U u' where u' is the nondim velocity ur implemented in the code)
+    double precision, parameter :: U_scale=1.                        !Actual U in m/s (u_real = U u' where u' is the nondim velocity ur implemented in the code)
 
    
     double precision, parameter :: Ar2= (H_scale/L_scale)**2!(1./64.)**2!(1./10.)**2 !0.01     !Aspect ratio squared = (H/L)^2     
@@ -163,7 +165,7 @@ MODULE parameters
     integer :: iter
     integer :: itermax=1000000000
     real :: maxtime= 20                      
-    double precision, parameter :: delt=0.00005*U_scale*dz    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
+    double precision, parameter :: delt=0.02*U_scale*dz    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
     double precision, parameter :: gamma=1e-2!4e-3!1e-2!7.e-3            !Robert filter parameter
 
     !Other successful viscosity: 5e-2 * (10./ktrunc_x ) **2. 
@@ -192,7 +194,7 @@ MODULE parameters
     !Output!
     !------!
 
-    integer, parameter :: out_etot   = 1, freq_etot   = INT(0.001/delt)!50!346!n3/64!n3!64!n3!50*n3/64      !Total energy                                                    
+    integer, parameter :: out_etot   = 1, freq_etot   = INT(0.01/delt)!50!346!n3/64!n3!64!n3!50*n3/64      !Total energy                                                    
     integer, parameter :: out_hspec  = 1, freq_hspec  = 5*freq_etot!n3/64!n3!freq_etot*10     !Horizontal energy spectrum at various heights 
     integer, parameter :: out_hg     = 0                 !Output geostrophic horizontal spectrum as well?
     integer, parameter :: out_vspec  = 0, freq_vspec =  freq_hspec
@@ -238,7 +240,7 @@ MODULE parameters
 
 
     !Slices
-    integer, parameter :: max_slices = 99     
+    integer, parameter :: max_slices = 999     
     integer, parameter :: nfields  = 5         !Don't forget to change tag_slice_xz(nfields) accordingly in "mpi.f90"
     integer, parameter :: nfields2 = 5         !Don't forget to change tag_slice_xz(nfields) accordingly in "mpi.f90"
     integer :: count_slice(nfields) = 0       !number of slices
