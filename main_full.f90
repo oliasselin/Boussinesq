@@ -107,6 +107,11 @@ PROGRAM main
 
   equivalence(u_rotr,u_rot)
 
+  real :: err_u,err_v
+
+  integer :: unit_u = 123451234
+  integer :: unit_v = 123451235
+
   !********************** Initializing... *******************************!
 
 
@@ -131,7 +136,9 @@ PROGRAM main
   vok=vk
   wok=wk
   bok=bk
-  
+
+  open (unit=unit_u,file='u.dat',action="write",status="replace")  
+  open (unit=unit_v,file='v.dat',action="write",status="replace")  
 
   !Initial diagnostics!
   !-------------------!
@@ -584,9 +591,10 @@ end if
      do ix=1,n1
         do iy=1,n2
            do izh0=1,n3h0
-     
-              err_u = err_u + abs( ur(ix,iy,izh0) - cos(time/Ro) )
-              err_v = err_v + abs( vr(ix,iy,izh0) + sin(time/Ro) )
+              izh2=izh0+2
+
+              err_u = err_u + abs( ur(ix,iy,izh2) - cos(time/Ro) )
+              err_v = err_v + abs( vr(ix,iy,izh2) + sin(time/Ro) )
 
            end do
         end do
@@ -596,8 +604,12 @@ end if
      err_u = err_u/(n1*n2*n3h0)
      err_v = err_v/(n1*n2*n3h0)
 
-     if(mype==0) write(*,*) "Error on u and v after time = ",time/Ro," inertial periods"
-     if(mype==0) write(*,*) "Err_u = ",err_u,"Err_v = ",err_v
+     if(mype==0) write(*,*) "Time = ",time/Ro,"Err_u = ",err_u,"Err_v = ",err_v
+
+     if(mype==0) then
+        write(unit_u,fmt=*) time/Ro,ur(1,1,izbot2),cos(time/Ro)
+        write(unit_v,fmt=*) time/Ro,vr(1,1,izbot2),-sin(time/Ro)
+     end if
 
      call fft_r2c(ur,uk,n3h2)
      call fft_r2c(vr,vk,n3h2)
