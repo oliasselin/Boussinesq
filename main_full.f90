@@ -569,6 +569,39 @@ end if
 
      if(out_3d ==1 .and. mod(iter,freq_3d)==0 ) call output3d(uk,vk,wk,bk,ur,vr,wr,br)
 
+
+
+     !***************************************************************************************************************************************!
+     !Compute error on the inertial circle. Exact solution: u = u_o cos( f t ) and v = - v_o sin( f t ), or in nondim notation: ft -> time/Ro!
+     !***************************************************************************************************************************************!
+
+     call fft_c2r(uk,ur,n3h2)
+     call fft_c2r(vk,vr,n3h2)
+
+     err_u = 0.
+     err_v = 0.
+
+     do ix=1,n1
+        do iy=1,n2
+           do izh0=1,n3h0
+     
+              err_u = err_u + abs( ur(ix,iy,izh0) - cos(time/Ro) )
+              err_v = err_v + abs( vr(ix,iy,izh0) + sin(time/Ro) )
+
+           end do
+        end do
+     end do
+
+     !Just calculate the L1 error in the first mype (should be the same for all processors...)
+     err_u = err_u/(n1*n2*n3h0)
+     err_v = err_v/(n1*n2*n3h0)
+
+     if(mype==0) write(*,*) "Error on u and v after time = ",time/Ro," inertial periods"
+     if(mype==0) write(*,*) "Err_u = ",err_u,"Err_v = ",err_v
+
+     call fft_r2c(ur,uk,n3h2)
+     call fft_r2c(vr,vk,n3h2)
+
  if(time>maxtime) EXIT
 end do !End loop         
 
