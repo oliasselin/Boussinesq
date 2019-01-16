@@ -120,39 +120,18 @@ PROGRAM main
   call init_base_state
   if(mype==0)  call validate_run
 
-  call init_psi_generic(uk,vk,wk,bk,psik,psir)
+  !Initialize the inertial circle: u=u_o v=w=b=0
+  ur=1.0
+  call fft_r2c(ur,uk,n3h2)
+  vk=(0.D0,0.D0)
+  wk=(0.D0,0.D0)
+  bk=(0.D0,0.D0)
 
-  if(norm_trop==1) call normalize_trop(uk,vk,wk,bk,psik,qk,wak)
-
-  if(init_wageo==1) then  !Initialize wk with the ageostrophic vertical velocity given by the omega equation
-     call omega_eqn_rhs(rhs,rhsr,psik)
-     call mpitranspose(rhs,iktx,ikty,n3h0,qt,n3,iktyp)
-     call omega_equation(wak,qt)
-
-     !Finally generate w from wak...                                                                                                                                                                                                  
-     do izh1=1,n3h1
-        izh2=izh1+1
-        do iky=1,ikty
-           do ikx=1,iktx
-              wk(ikx,iky,izh2) = Ro*wak(ikx,iky,izh1)
-           enddo
-        enddo
-     enddo
-  end if
-
-  call generate_halo(uk,vk,wk,bk)  !Probably useless (not now if using init_hspace_fields, but could be avoided, yes.)
-  
   uok=uk
   vok=vk
   wok=wk
   bok=bk
   
-
-
-
-
-
-
 
   !Initial diagnostics!
   !-------------------!
@@ -172,16 +151,6 @@ PROGRAM main
  do id_field=1,nfields
     if(out_slice ==1)  call slices(uk,vk,wk,bk,wak,u_rot,ur,vr,wr,br,war,u_rotr,id_field)
  end do
-
-! call compute_rot(uk,vk,wk,bk,wak,psik,u_a,v_a,w_a,b_a)
-! do id_field=1,nfields2
-!    if(out_slice ==1)  call slices2(uk,vk,u_a,v_a,w_a,b_a,bk,psik,wak,ur,vr,u_ar,v_ar,w_ar,b_ar,br,psir,war,id_field)
-! end do
-
-! if(out_slab == 1) then
-!    if(mype==slab_mype) call print_slab(uk,vk)
-!    if(mype==slab_mype) call slab_klist
-! end if
 
  if(out_slab == 1) call set_klist
  if(out_slab == 1 .and. mype==slab_mype .and. many_slab == 0) call print_time_series(uk,vk)
