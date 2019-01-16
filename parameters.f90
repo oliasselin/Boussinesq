@@ -161,14 +161,14 @@ MODULE parameters
     integer :: iter
     integer :: itermax=1000000000
     real :: maxtime= 20                      
-    double precision, parameter :: delt=0.02*U_scale*dz    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
+    double precision, parameter :: delt=Ro/10000.    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
     double precision, parameter :: gamma=1e-2!4e-3!1e-2!7.e-3            !Robert filter parameter
 
     !Other successful viscosity: 5e-2 * (10./ktrunc_x ) **2. 
     !PERFECT VISCOSITY: 0.01 * (64./(1.*n1)) **(4./3.)
     !In reality, nuh is 1/Re and nuz is 1/(Ar2*Re) with 1/Re = UL/nu
 
-    double precision, parameter :: coeff =0.4!0.4!0.1!0.075
+    double precision, parameter :: coeff =0.!0.4!0.1!0.075
     double precision, parameter :: coeffz=0.!coeff!/10.!/1000!/10.
 
     integer, parameter :: ilap = 8                   !horizontal viscosity = nuh nabla^(2*ilap). So ilap =1 is regular viscosity. ilap>1 is hyperviscosity
@@ -190,8 +190,8 @@ MODULE parameters
     !Output!
     !------!
 
-    integer, parameter :: out_etot   = 1, freq_etot   = INT(0.01/delt)!50!346!n3/64!n3!64!n3!50*n3/64      !Total energy                                                    
-    integer, parameter :: out_hspec  = 1, freq_hspec  = 5*freq_etot!n3/64!n3!freq_etot*10     !Horizontal energy spectrum at various heights 
+    integer, parameter :: out_etot   = 1, freq_etot   = 1!INT(0.01/delt)!50!346!n3/64!n3!64!n3!50*n3/64      !Total energy                                                    
+    integer, parameter :: out_hspec  = 0, freq_hspec  = 5*freq_etot!n3/64!n3!freq_etot*10     !Horizontal energy spectrum at various heights 
     integer, parameter :: out_hg     = 0                 !Output geostrophic horizontal spectrum as well?
     integer, parameter :: out_vspec  = 0, freq_vspec =  freq_hspec
     integer, parameter :: out_vbuoy  = 0, freq_vbuoy =  freq_hspec
@@ -205,7 +205,7 @@ MODULE parameters
     integer, parameter :: out_pvz    = 0, freq_pvz   =  freq_pv
     integer, parameter :: out_cond   = 0, freq_cond  =  5*freq_etot!*10        !Plot the conditions of integrability of the balance equations.
     integer, parameter :: out_grow   = 0, freq_grow  =  5*freq_etot!*10        !Plot the conditions of integrability of the balance equations.
-    integer, parameter :: out_omega  = 1, freq_omega =  5*freq_etot!*10        !Compute the QG ageotrophic vertical velocity wak and war
+    integer, parameter :: out_omega  = 0, freq_omega =  5*freq_etot!*10        !Compute the QG ageotrophic vertical velocity wak and war
     integer, parameter :: out_condwz = 0, freq_condwz=  freq_omega!*10        !Plot the w_z condition (requires out_omega = 1)
     integer, parameter :: out_cont   = 0, freq_cont  =  freq_etot!*10        !Plot the anelastic divergence (should be 0 because of the proj method)
 
@@ -259,7 +259,7 @@ MODULE parameters
                                               !halo levels (u=2,zz=1...)                                                                                                                                                     
     integer :: id_field                       !dummy index to differenciate fields plotted  
 
-    integer, parameter :: out_slice   = 1, freq_slice =  1* freq_etot
+    integer, parameter :: out_slice   = 0, freq_slice =  1* freq_etot
     integer, parameter :: out_eta     = 0, freq_eta   =  freq_slice
     integer, parameter :: out_tpf     = 0   !Output fields on the PV-based tp surface
     integer, parameter :: out_tps     = 0   !Output horizontal K energy spectrum on the PV-based tp surface

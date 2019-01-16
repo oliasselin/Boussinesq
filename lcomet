@@ -1,15 +1,11 @@
 #!/bin/bash
 
-#number_of_nodes=1
-#number_of_tasks=8
-#ntasks_per_node=8
+number_of_nodes=1
+number_of_tasks=8
+ntasks_per_node=8
 
-number_of_tasks=128
-ntasks_per_node=16
-number_of_nodes=8
-
-sourdir=/oasis/scratch/comet/oasselin/temp_project/boussinesq/cstN_U10/source/
-datadir=/oasis/scratch/comet/oasselin/temp_project/boussinesq/cstN_U10/output/
+sourdir=/oasis/scratch/comet/oasselin/temp_project/inertial/test0/source/
+datadir=/oasis/scratch/comet/oasselin/temp_project/inertial/test0/output/
 
 mkdir -p $sourdir
 mkdir -p $datadir
@@ -20,14 +16,14 @@ cd $sourdir
 cat > EXEC_STEP << EXEC
 #!/bin/sh 
 
-#SBATCH --job-name="cstN_U10"
-#SBATCH --output="/home/oasselin/monitor/cstN_U10.o"
-#SBATCH --error="/home/oasselin/monitor/cstN_U10.e"
+#SBATCH --job-name="test0"
+#SBATCH --output="/home/oasselin/monitor/test0.o"
+#SBATCH --error="/home/oasselin/monitor/test0.e"
 #SBATCH --partition=compute
 #SBATCH --nodes=$number_of_nodes
 #SBATCH --ntasks-per-node=$ntasks_per_node
 #SBATCH --export=ALL
-#SBATCH -t 01:00:00
+#SBATCH -t 00:10:00
 
 #This job runs with 2 nodes, 24 cores per node for a total of 48 cores.
 #ibrun in verbose mode will give binding detail
