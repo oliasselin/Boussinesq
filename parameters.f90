@@ -161,7 +161,7 @@ MODULE parameters
     integer :: iter
     integer :: itermax=1000000000
     real :: maxtime= 20                      
-    double precision, parameter :: delt=Ro/10000.    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
+    double precision, parameter :: delt=Ro/10.    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
     double precision, parameter :: gamma=1e-2!4e-3!1e-2!7.e-3            !Robert filter parameter
 
     !Other successful viscosity: 5e-2 * (10./ktrunc_x ) **2. 
@@ -190,7 +190,7 @@ MODULE parameters
     !Output!
     !------!
 
-    integer, parameter :: out_etot   = 1, freq_etot   = 1!INT(0.01/delt)!50!346!n3/64!n3!64!n3!50*n3/64      !Total energy                                                    
+    integer, parameter :: out_etot   = 1, freq_etot   = INT(0.01/delt)!50!346!n3/64!n3!64!n3!50*n3/64      !Total energy                                                    
     integer, parameter :: out_hspec  = 0, freq_hspec  = 5*freq_etot!n3/64!n3!freq_etot*10     !Horizontal energy spectrum at various heights 
     integer, parameter :: out_hg     = 0                 !Output geostrophic horizontal spectrum as well?
     integer, parameter :: out_vspec  = 0, freq_vspec =  freq_hspec
@@ -259,7 +259,7 @@ MODULE parameters
                                               !halo levels (u=2,zz=1...)                                                                                                                                                     
     integer :: id_field                       !dummy index to differenciate fields plotted  
 
-    integer, parameter :: out_slice   = 0, freq_slice =  1* freq_etot
+    integer, parameter :: out_slice   = 1, freq_slice =  1* freq_etot
     integer, parameter :: out_eta     = 0, freq_eta   =  freq_slice
     integer, parameter :: out_tpf     = 0   !Output fields on the PV-based tp surface
     integer, parameter :: out_tps     = 0   !Output horizontal K energy spectrum on the PV-based tp surface

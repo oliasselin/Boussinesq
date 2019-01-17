@@ -107,10 +107,14 @@ PROGRAM main
 
   equivalence(u_rotr,u_rot)
 
-  real :: err_u,err_v
+  real :: err_u  ,err_v  ,err_w  ,err_b
+  real :: err_u_p,err_v_p,err_w_p,err_b_p
 
   integer :: unit_u = 123451234
   integer :: unit_v = 123451235
+  integer :: unit_w = 123451236
+  integer :: unit_b = 123451237
+  integer :: unit_e = 123451238
 
   !********************** Initializing... *******************************!
 
@@ -125,10 +129,10 @@ PROGRAM main
   call init_base_state
   if(mype==0)  call validate_run
 
-  !Initialize the inertial circle: u=u_o v=w=b=0
-  ur=1.0
+  !Initialize the steady solution: u = sin(y), v = -sin(x), w = b = 0.
+  call generate_fields_stag(ur,n3h2,vr,n3h2,wr,n3h2)
   call fft_r2c(ur,uk,n3h2)
-  vk=(0.D0,0.D0)
+  call fft_r2c(vr,vk,n3h2)
   wk=(0.D0,0.D0)
   bk=(0.D0,0.D0)
 
@@ -139,6 +143,9 @@ PROGRAM main
 
   open (unit=unit_u,file='u.dat',action="write",status="replace")  
   open (unit=unit_v,file='v.dat',action="write",status="replace")  
+  open (unit=unit_w,file='w.dat',action="write",status="replace")  
+  open (unit=unit_b,file='b.dat',action="write",status="replace")  
+  open (unit=unit_e,file='e.dat',action="write",status="replace")  
 
   !Initial diagnostics!
   !-------------------!
@@ -584,35 +591,59 @@ end if
 
      call fft_c2r(uk,ur,n3h2)
      call fft_c2r(vk,vr,n3h2)
+     call fft_c2r(wk,wr,n3h2)
+     call fft_c2r(bk,br,n3h2)
 
      err_u = 0.
      err_v = 0.
+     err_w = 0.
+     err_b = 0.
+
+     err_u_p = 0.
+     err_v_p = 0.
+     err_w_p = 0.
+     err_b_p = 0.
 
      do ix=1,n1
+        x = xa(ix)
         do iy=1,n2
+           y = ya(iy)
            do izh0=1,n3h0
               izh2=izh0+2
 
-              err_u = err_u + abs( ur(ix,iy,izh2) - cos(time/Ro) )
-              err_v = err_v + abs( vr(ix,iy,izh2) + sin(time/Ro) )
+              err_u_p = err_u_p + abs( ur(ix,iy,izh2) - sin(y) )
+              err_v_p = err_v_p + abs( vr(ix,iy,izh2) + sin(x) )
+              err_w_p = err_w_p + abs( wr(ix,iy,izh2) )
+              err_b_p = err_b_p + abs( br(ix,iy,izh2) )
 
            end do
         end do
      end do
 
-     !Just calculate the L1 error in the first mype (should be the same for all processors...)
-     err_u = err_u/(n1*n2*n3h0)
-     err_v = err_v/(n1*n2*n3h0)
+     call mpi_reduce(err_u_p, err_u, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
+     call mpi_reduce(err_v_p, err_v, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
+     call mpi_reduce(err_w_p, err_w, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
+     call mpi_reduce(err_b_p, err_b, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
 
-     if(mype==0) write(*,*) "Time = ",time/Ro,"Err_u = ",err_u,"Err_v = ",err_v
+
+     !L1 error
+     err_u = err_u/(n1*n2*n3)
+     err_v = err_v/(n1*n2*n3)
+     err_w = err_w/(n1*n2*n3)
+     err_b = err_b/(n1*n2*n3)
 
      if(mype==0) then
-        write(unit_u,fmt=*) time/Ro,ur(1,1,izbot2),cos(time/Ro)
-        write(unit_v,fmt=*) time/Ro,vr(1,1,izbot2),-sin(time/Ro)
+        write(unit_u,fmt=*) time/Ro,ur(n1/4,n2/4,izbot2),sin(ya(n2/4))
+        write(unit_v,fmt=*) time/Ro,vr(n1/4,n2/4,izbot2),-sin(xa(n1/4))
+        write(unit_w,fmt=*) time/Ro,wr(n1/4,n2/4,izbot2),0.
+        write(unit_b,fmt=*) time/Ro,br(n1/4,n2/4,izbot2),0.
+        write(unit_e,fmt=*) time/Ro,err_u,err_v,err_w,err_b
      end if
 
      call fft_r2c(ur,uk,n3h2)
      call fft_r2c(vr,vk,n3h2)
+     call fft_r2c(wr,wk,n3h2)
+     call fft_r2c(br,bk,n3h2)
 
  if(time>maxtime) EXIT
 end do !End loop         

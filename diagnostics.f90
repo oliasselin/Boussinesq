@@ -947,13 +947,13 @@ end subroutine hspec
 
 
     if(id_field==1)   then
-       bmem=wk
-       call fft_c2r(wk,wr,n3h2)
-       field = U_scale*sqrt(Ar2)*wr    !In fact, w_DIM = UH/L w_NDIM (in the code) = UH/L Ro w_NDIM_1 (since w_NDIM_0 =0 in QG) => w_real_life = U Ar Ro w_1_computed   
+       bmem=uk
+       call fft_c2r(uk,ur,n3h2)
+       field = ur
     else if(id_field==2) then
-       qmem=wak
-       call fft_c2r(wak,war,n3h1)
-       field = U_scale*sqrt(Ar2)*Ro*war    !In fact, w_DIM = UH/L w_NDIM (in the code) = UH/L Ro w_NDIM_1 (since w_NDIM_0 =0 in QG) => w_real_life = U Ar Ro w_1_computed
+       bmem=vk
+       call fft_c2r(vk,vr,n3h2)
+       field = vr
     else if(id_field==3) then             !QG streamfunction
        bmem=bk
        call fft_c2r(bk,br,n3h2)
@@ -1178,8 +1178,8 @@ end subroutine hspec
 
 
 
-          if(id_field==1)    wk=bmem
-          if(id_field==2)    wak=qmem
+          if(id_field==1)    uk=bmem
+          if(id_field==2)    vk=bmem
           if(id_field==3)    bk=bmem
           if(id_field==4)    bk=bmem
 
