@@ -4,8 +4,8 @@ number_of_nodes=1
 number_of_tasks=8
 ntasks_per_node=8
 
-sourdir=/oasis/scratch/comet/oasselin/temp_project/steadyss/test1/source/
-datadir=/oasis/scratch/comet/oasselin/temp_project/steadyss/test1/output/
+sourdir=/oasis/scratch/comet/oasselin/temp_project/steady_wave/test1/source/
+datadir=/oasis/scratch/comet/oasselin/temp_project/steady_wave/test1/output/
 
 mkdir -p $sourdir
 mkdir -p $datadir
@@ -16,9 +16,9 @@ cd $sourdir
 cat > EXEC_STEP << EXEC
 #!/bin/sh 
 
-#SBATCH --job-name="test0"
-#SBATCH --output="/home/oasselin/monitor/test0.o"
-#SBATCH --error="/home/oasselin/monitor/test0.e"
+#SBATCH --job-name="test1"
+#SBATCH --output="/home/oasselin/monitor/test1.o"
+#SBATCH --error="/home/oasselin/monitor/test1.e"
 #SBATCH --partition=debug
 #SBATCH --nodes=$number_of_nodes
 #SBATCH --ntasks-per-node=$ntasks_per_node
