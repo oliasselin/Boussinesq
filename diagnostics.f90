@@ -920,7 +920,7 @@ end subroutine hspec
   !!!!! SLICES !!!!!
   !****************!
 
-  subroutine slices(uk,vk,wk,bk,wak,u_rot,ur,vr,wr,br,war,u_rotr,id_field)
+  subroutine slices(uk,vk,wk,bk,wak,u_rot,ur,vr,wr,br,war,u_rotr,uwr,vwr,id_field)
 
     double complex, dimension(iktx,ikty,n3h2) :: uk,vk,wk,bk
     double complex, dimension(iktx,ikty,n3h1) :: zzk,wak,u_rot     !COULD BE OPTIMIZED 
@@ -931,6 +931,7 @@ end subroutine hspec
     double complex, dimension(iktx,ikty,n3h2) :: bmem
     double complex, dimension(iktx,ikty,n3h1) :: qmem
     
+    double precision, dimension(n1d,n2d,n3h2)   :: uwr,vwr     !(approximate wave part of the flow)                                                                                                               
     double precision,    dimension(n1d,n2d,n3h0+2*hlvl(id_field)) :: field
 
     real, dimension(n1,n3h0) :: XZ_slice_p        !Scratch array for xz slices (divided amongst processors)                                                                                                                               
@@ -949,82 +950,15 @@ end subroutine hspec
     if(id_field==1)   then
        bmem=uk
        call fft_c2r(uk,ur,n3h2)
-       field = ur
+       field = ur*U_scale
     else if(id_field==2) then
        bmem=vk
        call fft_c2r(vk,vr,n3h2)
-       field = vr
+       field = vr*U_scale
     else if(id_field==3) then             !QG streamfunction
-       bmem=bk
-       call fft_c2r(bk,br,n3h2)
-       field = (U_scale*U_scale/(H_scale*Ro))*br     !In fact, b_real_life = fUL/H b_computed = U^2/(Ro*H) b_computed
-       !For theta_1_real, just multiply field (b_real) by H_scale*H_1/cp.
+       field = uwr*U_scale
     elseif(id_field==4) then   !Fr number based on buoyancy: bz/N^2 = (Fr^2/Ro) b'z'/r1r2
-       bmem=bk
-       call fft_c2r(bk,br,n3h2)
-
-       if(where_bz==stag) then
-          do izh1=1,n3h1
-             izh2=izh1+1
-             do ix=1,n1d
-                do iy=1,n2d
-                   if(ix<=n1) then
-                      field(ix,iy,izh1) = (br(ix,iy,izh2+1)-br(ix,iy,izh2-1))/(r_1s(izh2)*r_2s(izh2)*2.*dz)  
-                   else
-                      field(ix,iy,izh1) = 0.
-                   end if
-                end do
-             end do
-          end do
-          
-          if(mype==0) then
-             do ix=1,n1d
-                do iy=1,n2d
-                   if(ix<=n1) then
-                      field(ix,iy,izbot1) =  (br(ix,iy,izbot2+1) - br(ix,iy,izbot2)   )/(r_1s(izbot2)*r_2s(izbot2)*2.D0*dz)
-                   else
-                      field(ix,iy,izbot1) = 0.
-                   end if
-                end do
-             end do
-          elseif(mype==(npe-1)) then
-             do ix=1,n1d
-                do iy=1,n2d
-                   if(ix<=n1) then
-                      field(ix,iy,iztop1) =  (br(ix,iy,iztop2) - br(ix,iy,iztop2-1)   )/(r_1s(iztop2)*r_2s(iztop2)*2.D0*dz)
-                   else
-                      field(ix,iy,iztop1) = 0.
-                   end if
-                end do
-             end do
-          end if
-       elseif(where_bz==unstag) then     !We then want bz/N^2 on UNSTAG points.     
-          do izh1=1,n3h1
-             izh2=izh1+1
-             do ix=1,n1d
-                do iy=1,n2d
-                   if(ix<=n1) then
-                      field(ix,iy,izh1) =  (br(ix,iy,izh2+1)-br(ix,iy,izh2))/(r_1(izh2)*r_2(izh2)*dz) 
-                   else
-                      field(ix,iy,izh1) = 0.
-                   end if
-                end do
-             end do
-          end do
-          
-          if(mype==(npe-1)) then
-             do ix=1,n1d
-                do iy=1,n2d
-                      field(ix,iy,iztop1) = 0.
-                end do
-             end do
-          end if
-
-
-       end if
-
-!       field = (U_scale*U_scale/(H_scale*H_scale*Ro))*field     !In fact, b_real_life = fUL/H b_computed = U^2/(Ro*H) b_computed                                                                                                           
-       field = (Fr*Fr/Ro)*field     !In fact, b_real_life = fUL/H b_computed = U^2/(Ro*H) b_computed                                                                                                           
+       field = 0.5*(uwr*uwr + vwr*vwr)*U_scale*U_scale       
     else if(id_field==5) then             !Vorticity-based Rossby number 
        !Compute the z-component of vorticity
        zzk = (0.D0,0.D0)
@@ -1180,9 +1114,6 @@ end subroutine hspec
 
           if(id_field==1)    uk=bmem
           if(id_field==2)    vk=bmem
-          if(id_field==3)    bk=bmem
-          if(id_field==4)    bk=bmem
-
 
           count_slice(id_field)=count_slice(id_field)+1
 
