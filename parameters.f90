@@ -161,7 +161,7 @@ MODULE parameters
     integer :: iter
     integer :: itermax=1000000000
     real :: maxtime= 20                      
-    double precision, parameter :: delt=Ro/10.    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
+    double precision, parameter :: delt=Ro/100.    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
     double precision, parameter :: gamma=1e-2!4e-3!1e-2!7.e-3            !Robert filter parameter
 
     !Other successful viscosity: 5e-2 * (10./ktrunc_x ) **2. 

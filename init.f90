@@ -868,8 +868,8 @@ do ix=1,n1d
          end if
 
       if(ix<=n1) then
-         if(z1>=0) f1s(ix,iy,iz1)= sin(y)
-         if(z2>=0) f2s(ix,iy,iz2)=-sin(x)
+         if(z1>=0) f1s(ix,iy,iz1)=-sin(x)*cos(y)
+         if(z2>=0) f2s(ix,iy,iz2)= cos(x)*sin(y)
          if(z3>=0) f3s(ix,iy,iz3)=0.
       else
          if(z1>=0) f1s(ix,iy,iz1)=0.

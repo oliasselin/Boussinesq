@@ -129,7 +129,6 @@ PROGRAM main
   call init_base_state
   if(mype==0)  call validate_run
 
-  !Initialize the steady solution: u = sin(y), v = -sin(x), w = b = 0.
   call generate_fields_stag(ur,n3h2,vr,n3h2,wr,n3h2)
   call fft_r2c(ur,uk,n3h2)
   call fft_r2c(vr,vk,n3h2)
@@ -611,8 +610,8 @@ end if
            do izh0=1,n3h0
               izh2=izh0+2
 
-              err_u_p = err_u_p + abs( ur(ix,iy,izh2) - sin(y) )
-              err_v_p = err_v_p + abs( vr(ix,iy,izh2) + sin(x) )
+              err_u_p = err_u_p + abs( ur(ix,iy,izh2) + sin(x)*cos(y) )
+              err_v_p = err_v_p + abs( vr(ix,iy,izh2) - cos(x)*sin(y) )
               err_w_p = err_w_p + abs( wr(ix,iy,izh2) )
               err_b_p = err_b_p + abs( br(ix,iy,izh2) )
 
@@ -633,8 +632,8 @@ end if
      err_b = err_b/(n1*n2*n3)
 
      if(mype==0) then
-        write(unit_u,fmt=*) time/Ro,ur(n1/4,n2/4,izbot2),sin(ya(n2/4))
-        write(unit_v,fmt=*) time/Ro,vr(n1/4,n2/4,izbot2),-sin(xa(n1/4))
+        write(unit_u,fmt=*) time/Ro,ur(n1/4,n2/4,izbot2),-sin(xa(n1/4))*cos(ya(n2/4))
+        write(unit_v,fmt=*) time/Ro,vr(n1/4,n2/4,izbot2), cos(xa(n1/4))*sin(ya(n2/4))
         write(unit_w,fmt=*) time/Ro,wr(n1/4,n2/4,izbot2),0.
         write(unit_b,fmt=*) time/Ro,br(n1/4,n2/4,izbot2),0.
         write(unit_e,fmt=*) time/Ro,err_u,err_v,err_w,err_b
