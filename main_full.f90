@@ -116,6 +116,8 @@ PROGRAM main
   integer :: unit_b = 123451237
   integer :: unit_e = 123451238
 
+  double precision, dimension(n1d,n2d,n3h2)   :: uwr,vwr     !(approximate wave part of the flow)
+
   !********************** Initializing... *******************************!
 
 
@@ -140,12 +142,6 @@ PROGRAM main
   wok=wk
   bok=bk
 
-  open (unit=unit_u,file='u.dat',action="write",status="replace")  
-  open (unit=unit_v,file='v.dat',action="write",status="replace")  
-  open (unit=unit_w,file='w.dat',action="write",status="replace")  
-  open (unit=unit_b,file='b.dat',action="write",status="replace")  
-  open (unit=unit_e,file='e.dat',action="write",status="replace")  
-
   !Initial diagnostics!
   !-------------------!
 
@@ -162,7 +158,7 @@ PROGRAM main
  ! Compute q (linear PV)                                                                                                                                                                                                                    
  call init_q(qk,psik)
  do id_field=1,nfields
-    if(out_slice ==1)  call slices(uk,vk,wk,bk,wak,u_rot,ur,vr,wr,br,war,u_rotr,id_field)
+    if(out_slice ==1)  call slices(uk,vk,wk,bk,wak,u_rot,ur,vr,wr,br,war,u_rotr,uwr,vwr,id_field)
  end do
 
  if(out_slab == 1) call set_klist
@@ -546,6 +542,32 @@ end if
      !Diagnostics!                                                                                                                                                                                                               
      !-----------!                                                                                                                                                                                                                       
 
+     !**********************************************************************************************************!
+     !*** Get the approximate wave part of the flow by subtracting the otherwise steady part of the solution ***!
+     !**********************************************************************************************************!
+
+     call fft_c2r(uk,ur,n3h2)
+     call fft_c2r(vk,vr,n3h2)
+
+     do ix=1,n1
+        x = xa(ix)
+        do iy=1,n2
+           y = ya(iy)
+           do izh2=1,n3h2
+
+              uwr(ix,iy,izh2) = ur(ix,iy,izh2) + sin(x)*cos(y)
+              vwr(ix,iy,izh2) = vr(ix,iy,izh2) - cos(x)*sin(y)
+
+           end do
+        end do
+     end do
+
+     call fft_r2c(ur,uk,n3h2)
+     call fft_r2c(vr,vk,n3h2)
+
+     !**********************************************************************************************************!
+
+
      call compute_streamfunction(uk,vk,psik)
 
      !Compute wa if desired                                                                                                                                                                                                     
@@ -561,14 +583,8 @@ end if
      
      if( out_slice ==1  .and. mod(iter,freq_slice)==0 .and. count_slice(id_field)<max_slices) call init_q(qk,psik)
      do id_field=1,nfields
-        if(out_slice ==1 .and. mod(iter,freq_slice)==0 .and. count_slice(id_field)<max_slices)  call slices(uk,vk,wk,bk,wak,u_rot,ur,vr,wr,br,war,u_rotr,id_field)
+        if(out_slice ==1 .and. mod(iter,freq_slice)==0 .and. count_slice(id_field)<max_slices)  call slices(uk,vk,wk,bk,wak,u_rot,ur,vr,wr,br,war,u_rotr,uwr,vwr,id_field)
      end do
-
-!     call compute_rot(uk,vk,wk,bk,wak,psik,u_a,v_a,w_a,b_a)
-!     do id_field=1,nfields2
-!        if(out_slice ==1 .and. mod(iter,freq_slice)==0 .and. count_slice2(id_field)<max_slices)   call slices2(uk,vk,u_a,v_a,w_a,b_a,bk,psik,wak,ur,vr,u_ar,v_ar,w_ar,b_ar,br,psir,war,id_field)
-!     end do
-
 
      if(out_slab == 1 .and. mod(iter,freq_slab)==0 .and. mype==slab_mype .and. many_slab == 0) call print_time_series(uk,vk)
      if(out_slab == 1 .and. mod(iter,freq_slab)==0 .and. many_slab == 1) then
@@ -582,67 +598,6 @@ end if
 
      if(out_3d ==1 .and. mod(iter,freq_3d)==0 ) call output3d(uk,vk,wk,bk,ur,vr,wr,br)
 
-
-
-     !***************************************************************************************************************************************!
-     !Compute error on the inertial circle. Exact solution: u = u_o cos( f t ) and v = - v_o sin( f t ), or in nondim notation: ft -> time/Ro!
-     !***************************************************************************************************************************************!
-
-     call fft_c2r(uk,ur,n3h2)
-     call fft_c2r(vk,vr,n3h2)
-     call fft_c2r(wk,wr,n3h2)
-     call fft_c2r(bk,br,n3h2)
-
-     err_u = 0.
-     err_v = 0.
-     err_w = 0.
-     err_b = 0.
-
-     err_u_p = 0.
-     err_v_p = 0.
-     err_w_p = 0.
-     err_b_p = 0.
-
-     do ix=1,n1
-        x = xa(ix)
-        do iy=1,n2
-           y = ya(iy)
-           do izh0=1,n3h0
-              izh2=izh0+2
-
-              err_u_p = err_u_p + abs( ur(ix,iy,izh2) + sin(x)*cos(y) )
-              err_v_p = err_v_p + abs( vr(ix,iy,izh2) - cos(x)*sin(y) )
-              err_w_p = err_w_p + abs( wr(ix,iy,izh2) )
-              err_b_p = err_b_p + abs( br(ix,iy,izh2) )
-
-           end do
-        end do
-     end do
-
-     call mpi_reduce(err_u_p, err_u, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
-     call mpi_reduce(err_v_p, err_v, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
-     call mpi_reduce(err_w_p, err_w, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
-     call mpi_reduce(err_b_p, err_b, 1,MPI_REAL,   MPI_SUM,0,MPI_COMM_WORLD,ierror)
-
-
-     !L1 error
-     err_u = err_u/(n1*n2*n3)
-     err_v = err_v/(n1*n2*n3)
-     err_w = err_w/(n1*n2*n3)
-     err_b = err_b/(n1*n2*n3)
-
-     if(mype==0) then
-        write(unit_u,fmt=*) time/Ro,ur(n1/4,n2/4,izbot2),-sin(xa(n1/4))*cos(ya(n2/4))
-        write(unit_v,fmt=*) time/Ro,vr(n1/4,n2/4,izbot2), cos(xa(n1/4))*sin(ya(n2/4))
-        write(unit_w,fmt=*) time/Ro,wr(n1/4,n2/4,izbot2),0.
-        write(unit_b,fmt=*) time/Ro,br(n1/4,n2/4,izbot2),0.
-        write(unit_e,fmt=*) time/Ro,err_u,err_v,err_w,err_b
-     end if
-
-     call fft_r2c(ur,uk,n3h2)
-     call fft_r2c(vr,vk,n3h2)
-     call fft_r2c(wr,wk,n3h2)
-     call fft_r2c(br,bk,n3h2)
 
  if(time>maxtime) EXIT
 end do !End loop         
