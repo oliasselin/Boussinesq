@@ -4,8 +4,8 @@ number_of_nodes=1
 number_of_tasks=8
 ntasks_per_node=8
 
-sourdir=/oasis/scratch/comet/oasselin/temp_project/steady_wave/test1/source/
-datadir=/oasis/scratch/comet/oasselin/temp_project/steady_wave/test1/output/
+sourdir=/oasis/scratch/comet/oasselin/temp_project/steady_wave/BO/source/
+datadir=/oasis/scratch/comet/oasselin/temp_project/steady_wave/BO/output/
 
 mkdir -p $sourdir
 mkdir -p $datadir

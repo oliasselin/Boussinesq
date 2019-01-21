@@ -107,14 +107,9 @@ PROGRAM main
 
   equivalence(u_rotr,u_rot)
 
-  real :: err_u  ,err_v  ,err_w  ,err_b
-  real :: err_u_p,err_v_p,err_w_p,err_b_p
-
   integer :: unit_u = 123451234
   integer :: unit_v = 123451235
-  integer :: unit_w = 123451236
-  integer :: unit_b = 123451237
-  integer :: unit_e = 123451238
+  integer :: unit_wke = 123451236
 
   double precision, dimension(n1d,n2d,n3h2)   :: uwr,vwr     !(approximate wave part of the flow)
 
@@ -141,6 +136,10 @@ PROGRAM main
   vok=vk
   wok=wk
   bok=bk
+
+  open (unit=unit_u,file='u.dat',action="write",status="replace")
+  open (unit=unit_v,file='v.dat',action="write",status="replace")
+  open (unit=unit_wke,file='wke.dat',action="write",status="replace")
 
   !Initial diagnostics!
   !-------------------!
@@ -546,24 +545,33 @@ end if
      !*** Get the approximate wave part of the flow by subtracting the otherwise steady part of the solution ***!
      !**********************************************************************************************************!
 
+
      call fft_c2r(uk,ur,n3h2)
      call fft_c2r(vk,vr,n3h2)
-
+     
      do ix=1,n1
         x = xa(ix)
         do iy=1,n2
            y = ya(iy)
            do izh2=1,n3h2
-
+              
               uwr(ix,iy,izh2) = ur(ix,iy,izh2) + sin(x)*cos(y)
               vwr(ix,iy,izh2) = vr(ix,iy,izh2) - cos(x)*sin(y)
-
+              
            end do
         end do
      end do
-
+     
+     if(mype==0) then
+        write(unit_u,fmt=*)   time,time/(twopi*Ro),uwr(n1/4,n2/4,izbot2)
+        write(unit_v,fmt=*)   time,time/(twopi*Ro),vwr(n1/4,n2/4,izbot2)
+        write(unit_wke,fmt=*) time,time/(twopi*Ro),0.5*(uwr(n1/4,n2/4,izbot2)**2+vwr(n1/4,n2/4,izbot2)**2)
+     end if
+     
+     
      call fft_r2c(ur,uk,n3h2)
      call fft_r2c(vr,vk,n3h2)
+     
 
      !**********************************************************************************************************!
 
