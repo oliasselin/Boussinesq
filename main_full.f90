@@ -562,10 +562,10 @@ end if
         end do
      end do
      
-     if(mype==0) then
-        write(unit_u,fmt=*)   time,time/(twopi*Ro),uwr(n1/4,n2/4,izbot2)
-        write(unit_v,fmt=*)   time,time/(twopi*Ro),vwr(n1/4,n2/4,izbot2)
-        write(unit_wke,fmt=*) time,time/(twopi*Ro),0.5*(uwr(n1/4,n2/4,izbot2)**2+vwr(n1/4,n2/4,izbot2)**2)
+     if(mype==(npe-1)) then
+        write(unit_u,fmt=*)   time,time/(twopi*Ro),uwr(n1/4,n2/4,iztop2)*U_scale
+        write(unit_v,fmt=*)   time,time/(twopi*Ro),vwr(n1/4,n2/4,iztop2)*U_scale
+        write(unit_wke,fmt=*) time,time/(twopi*Ro),0.5*(uwr(n1/4,n2/4,iztop2)**2+vwr(n1/4,n2/4,iztop2)**2)*U_scale*U_scale
      end if
      
      

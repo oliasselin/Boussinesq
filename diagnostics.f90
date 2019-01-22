@@ -948,17 +948,17 @@ end subroutine hspec
 
 
     if(id_field==1)   then
+       field = 0.5*(uwr*uwr + vwr*vwr)*U_scale*U_scale       
+    else if(id_field==2) then
+       field = uwr*U_scale
+    else if(id_field==3) then             !QG streamfunction
        bmem=uk
        call fft_c2r(uk,ur,n3h2)
        field = ur*U_scale
-    else if(id_field==2) then
-       bmem=vk
-       call fft_c2r(vk,vr,n3h2)
-       field = vr*U_scale
-    else if(id_field==3) then             !QG streamfunction
-       field = uwr*U_scale
     elseif(id_field==4) then   !Fr number based on buoyancy: bz/N^2 = (Fr^2/Ro) b'z'/r1r2
-       field = 0.5*(uwr*uwr + vwr*vwr)*U_scale*U_scale       
+       bmem=uk
+       call fft_c2r(uk,ur,n3h2)
+       field = (ur-uwr)*U_scale
     else if(id_field==5) then             !Vorticity-based Rossby number 
        !Compute the z-component of vorticity
        zzk = (0.D0,0.D0)
@@ -1112,8 +1112,8 @@ end subroutine hspec
 
 
 
-          if(id_field==1)    uk=bmem
-          if(id_field==2)    vk=bmem
+          if(id_field==3)    uk=bmem
+          if(id_field==4)    uk=bmem
 
           count_slice(id_field)=count_slice(id_field)+1
 

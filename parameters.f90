@@ -137,6 +137,9 @@ MODULE parameters
     !Keep in mind that: N/f = 1/Ar * (Ro/Fr).
 
 
+
+    integer, parameter :: singlem = 10
+
     !Primary parameters!
     !------------------!
 
@@ -144,12 +147,12 @@ MODULE parameters
     double precision, parameter :: cor=1e-4!0.00000000001!0.0005 !0.0001                           !Actual f = 0.0001 s^-1 (real value of planet Earth)
     double precision, parameter :: L_scale=5e4         !5.*(0.5*(sqrt(N_2_trop)+sqrt(N_2_stra))*H_scale/cor)  !200*H_scale                 !Actual L in m ( x_real = L x' where x' in [0:2pi] is the nondim x.)
     double precision, parameter :: U_scale=0.25                        !Actual U in m/s (u_real = U u' where u' is the nondim velocity ur implemented in the code)
-    double precision, parameter :: Uw_scale=2.5e-5                        !Actual U in m/s (u_real = U u' where u' is the nondim velocity ur implemented in the code)
-    
+    double precision, parameter :: Uw_scale=2.5e-6                        !Actual U in m/s (u_real = U u' where u' is the nondim velocity ur implemented in the code)
+    double precision, parameter :: N0 = twopi*10*cor
    
     double precision, parameter :: Ar2= (H_scale/L_scale)**2!(1./64.)**2!(1./10.)**2 !0.01     !Aspect ratio squared = (H/L)^2     
     double precision, parameter :: Ro = U_scale/(cor*L_scale)                                  !Rossby number  U/fL
-    double precision, parameter :: Fr = U_scale/(0.5*(sqrt(N_2_trop)+sqrt(N_2_stra))*H_scale)  !Froude number  U/N(z0)H
+    double precision, parameter :: Fr = U_scale/(N0*H_scale)  !U_scale/(0.5*(sqrt(N_2_trop)+sqrt(N_2_stra))*H_scale)  !Froude number  U/N(z0)H
 
     double precision, parameter :: big_F = Fr*Fr/(Ro*Ro)                    ! (Fr/Ro)^2
 
@@ -162,7 +165,7 @@ MODULE parameters
     integer :: iter
     integer :: itermax=1000000000
     real :: maxtime= 20                      
-    double precision, parameter :: delt=Ro/1000.    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
+    double precision, parameter :: delt=Ro/2000.    !0.0005*U_scale*dz                ! T_visc = 0.25D0*dz*dz/nu
     double precision, parameter :: gamma=1e-2!4e-3!1e-2!7.e-3            !Robert filter parameter
 
     !Other successful viscosity: 5e-2 * (10./ktrunc_x ) **2. 
@@ -243,8 +246,8 @@ MODULE parameters
     integer :: count_slice(nfields) = 0       !number of slices
     integer :: count_slice2(nfields2) = 0       !number of slices
     integer :: zval=n3/2                      !z-level at which we wish to plo a slice                                                                                                                               
-    integer :: yval=n2/2
-    integer :: xval=n1/2
+    integer :: yval=n2/4
+    integer :: xval=n1/4
     integer :: hlvl(nfields)=[2,2,2,2,1]                                   
     integer :: hlvl2(nfields2)=[1,1,1,1,0]                                   
 
